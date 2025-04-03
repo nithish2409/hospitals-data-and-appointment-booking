@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment - Meditalk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#2ACDE0",
+                        secondary: "#1A8F8F",
+                    },
+                    borderRadius: {
+                        button: "8px",
+                    },
+                },
+            },
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+        .selected-date {
+            background-color: #2ACDE0 !important;
+            color: white !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-[#f8fdfd] to-[#e8f7f7] text-gray-800 font-['Poppins']">
+
+    <!-- Header -->
+    <header class="flex justify-between items-center px-6 py-4 bg-white shadow-md">
+        <h1 class="text-2xl font-['Pacifico'] text-primary">Meditalk</h1>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex items-center justify-center p-6">
+        <div class="glass-effect rounded-xl p-8 max-w-4xl w-full">
+            <h2 class="text-2xl font-semibold mb-6 text-primary">Book an Appointment</h2>
+
+            <!-- Selected Hospital (Unchanged) -->
+            <div class="mb-6">
+                <p class="text-lg font-semibold">Selected Hospital</p>
+                <div class="bg-white p-4 rounded-lg shadow-md mt-2">
+                    <p id="selectedHospitalName" class="font-semibold">Loading...</p>
+                    <p id="selectedHospitalLocation" class="text-gray-500 text-sm"></p>
+                </div>
+            </div>
+
+            <!-- Select Department -->
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium">Select Department</label>
+                <select id="department" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    <option value="General Medicine">General Medicine</option>
+                    <option value="Cardiology">Cardiology</option>
+                    <option value="Neurology">Neurology</option>
+                </select>
+            </div>
+
+            <!-- Select Doctor -->
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium">Select Doctor</label>
+                <select id="doctor" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    <option value="Dr. Sarah Johnson">Dr. Sarah Johnson</option>
+                    <option value="Dr. Mark Lee">Dr. Mark Lee</option>
+                    <option value="Dr. Emily Brown">Dr. Emily Brown</option>
+                </select>
+            </div>
+
+            <!-- Calendar -->
+            <div class="mb-6">
+                <p class="text-lg font-semibold">Select Date</p>
+                <div id="calendar" class="grid grid-cols-7 gap-2 mt-2 text-center w-full"></div>
+            </div>
+
+            <!-- Confirm Appointment -->
+            <button id="confirmBtn" class="w-full bg-primary text-white py-3 rounded-lg hover:bg-secondary transition">Confirm Appointment</button>
+        </div>
+    </div>
+
+    <script>
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                name: params.get("name"),
+                location: params.get("location"),
+            };
+        }
+
+        function loadHospitalDetails() {
+            const { name, location } = getQueryParams();
+            document.getElementById("selectedHospitalName").textContent = name || "No Hospital Selected";
+            document.getElementById("selectedHospitalLocation").textContent = location || "";
+        }
+
+        function generateCalendar() {
+            const calendar = document.getElementById("calendar");
+            calendar.innerHTML = "";
+            for (let i = 1; i <= 30; i++) {
+                const button = document.createElement("button");
+                button.textContent = i;
+                button.classList.add("p-2", "rounded-lg", "hover:bg-gray-300");
+                button.onclick = function () {
+                    document.querySelectorAll(".selected-date").forEach(el => el.classList.remove("selected-date"));
+                    button.classList.add("selected-date");
+                };
+                calendar.appendChild(button);
+            }
+        }
+
+        document.getElementById("confirmBtn").addEventListener("click", function() {
+            const selectedDate = document.querySelector(".selected-date");
+            const department = document.getElementById("department").value;
+            const doctor = document.getElementById("doctor").value;
+            if (!selectedDate) {
+                alert("Please select a date.");
+                return;
+            }
+            alert(`Appointment confirmed with ${doctor} in ${department} on ${selectedDate.textContent} March 2025`);
+        });
+
+        window.onload = function() {
+            loadHospitalDetails();
+            generateCalendar();
+        };
+    </script>
+
+</body>
+</html>

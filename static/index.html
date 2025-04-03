@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find Nearby Hospitals - Meditalk</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: "#2ACDE0", secondary: "#1A8F8F" },
+          borderRadius: { button: "8px" },
+        },
+      },
+    };
+  </script>
+  <style>
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-[#f8fdfd] to-[#e8f7f7] text-gray-800 font-['Poppins']">
+
+  <!-- ✅ Header -->
+  <header class="glass-effect fixed top-0 w-full z-50 p-4 flex justify-between items-center">
+    <h1 class="text-3xl font-['Pacifico'] text-primary">Meditalk</h1>
+    <div class="flex items-center gap-6 text-gray-600 text-xl">
+      <i class="fas fa-bell"></i> <!-- Notification -->
+      <i class="fas fa-cog"></i>  <!-- Settings -->
+      <i class="fas fa-user"></i> <!-- Profile -->
+    </div>
+  </header>
+
+  <main class="container mx-auto px-6 pt-24 pb-32">
+    <!-- ✅ Search Bar -->
+    <div class="glass-effect rounded-xl p-4 mb-8 flex items-center gap-4">
+      <input type="text" placeholder="Search location" id="locationInput" class="w-full p-3 pr-14 rounded-lg border-gray-300 focus:ring-primary focus:border-primary"/>
+      <button id="voiceButton" class="p-3 bg-[#E8F7F7] rounded-full">
+        <i class="fas fa-microphone text-secondary"></i>
+      </button>
+    </div>
+
+    <!-- ✅ Hospital List -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="hospitalList"></div>
+  </main>
+
+  <script>
+    async function fetchHospitals(location) {
+      document.getElementById("hospitalList").innerHTML = "<p>Loading...</p>";
+      const response = await fetch(`/search?location=${encodeURIComponent(location)}`);
+      const hospitals = await response.json();
+      const container = document.getElementById("hospitalList");
+
+      if (hospitals.length === 0) {
+        container.innerHTML = "<p>No hospitals found.</p>";
+        return;
+      }
+
+      container.innerHTML = hospitals
+        .map(h => `
+          <div class='glass-effect p-6 rounded-lg flex flex-col gap-3'>
+            <h3 class='text-xl font-bold'>${h.Name}</h3>
+            <p><i class="fas fa-map-marker-alt text-secondary"></i> ${h.Location}</p>
+            <button class="book-appointment p-2 bg-primary text-white rounded-lg flex items-center justify-center gap-2"
+                    data-name="${h.Name}" data-location="${h.Location}">
+              <i class="fas fa-calendar-check"></i> Book Appointment
+            </button>
+          </div>
+        `)
+        .join("");
+
+      // ✅ Add event listener to "Book Appointment" buttons
+      document.querySelectorAll(".book-appointment").forEach(button => {
+        button.addEventListener("click", (event) => {
+          const name = event.currentTarget.getAttribute("data-name");
+          const location = event.currentTarget.getAttribute("data-location");
+          window.location.href = `appointment.html?name=${encodeURIComponent(name)}&location=${encodeURIComponent(location)}`;
+        });
+      });
+    }
+
+    // ✅ Listen for Enter Key in Search Bar
+    document.getElementById("locationInput").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        const location = this.value.trim();
+        if (location) {
+          fetchHospitals(location);
+        }
+      }
+    });
+
+    // ✅ Voice Search with Toggle Feature
+    let recognition;
+    let isListening = false;
+
+    document.getElementById("voiceButton").addEventListener("click", () => {
+      if (!("webkitSpeechRecognition" in window)) {
+        alert("Your browser does not support speech recognition.");
+        return;
+      }
+
+      if (!recognition) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "en-US";
+
+        recognition.onresult = function (event) {
+          const speechResult = event.results[0][0].transcript;
+          document.getElementById("locationInput").value = speechResult;
+          fetchHospitals(speechResult);
+        };
+
+        recognition.onerror = function (event) {
+          console.error("Speech recognition error", event);
+          alert("Speech recognition failed. Please try again.");
+        };
+
+        recognition.onend = function () {
+          isListening = false;
+          document.getElementById("voiceButton").classList.remove("bg-secondary");
+        };
+      }
+
+      if (isListening) {
+        recognition.stop();
+        isListening = false;
+        document.getElementById("voiceButton").classList.remove("bg-secondary");
+      } else {
+        recognition.start();
+        isListening = true;
+        document.getElementById("voiceButton").classList.add("bg-secondary");
+      }
+    });
+  </script>
+</body>
+</html>
